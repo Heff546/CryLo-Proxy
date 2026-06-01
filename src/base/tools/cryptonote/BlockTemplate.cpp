@@ -258,13 +258,13 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     ar(m_height);
     ar(m_numOutputs);
 
-    if (m_coin == Coin::ZEPHYR) {
-        if (m_numOutputs < 2) {
+    if (m_coin == Coin::ZEPHYR || m_coin == Coin::CRYLO) {
+    	if (m_numOutputs < 2) {
             return false;
-        }
+    	}
     }
     else if (m_numOutputs != 1) {
-        return false;
+    	return false;
     }
 
     ar(m_amount);
@@ -319,8 +319,33 @@ bool xmrig::BlockTemplate::parse(bool hashes)
             ar(view_tag2);
         }
     }
-    else if (m_outputType == 3) {
-        ar(m_viewTag);
+    else {
+        if (m_outputType == 3) {
+            ar(m_viewTag);
+        }
+
+        if (m_coin == Coin::CRYLO) {
+            for (uint64_t k = 1; k < m_numOutputs; ++k) {
+                uint64_t amount2;
+                ar(amount2);
+
+                uint8_t output_type2;
+                ar(output_type2);
+
+                if ((output_type2 != 2) && (output_type2 != 3)) {
+                    return false;
+
+                }
+
+                Span key2;
+                ar(key2, kKeySize);
+
+                if (output_type2 == 3) {
+                    uint8_t view_tag2;
+                    ar(view_tag2);
+                }
+            }
+        }
     }
 
     if (m_coin == Coin::TOWNFORGE) {
