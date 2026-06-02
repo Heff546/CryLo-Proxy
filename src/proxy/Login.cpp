@@ -30,6 +30,9 @@
 #include "proxy/Error.h"
 #include "proxy/events/LoginEvent.h"
 #include "proxy/Miner.h"
+#include "proxy/Counters.h"
+#include "proxy/StatsData.h"
+#include "proxy/Proxy.h"
 
 
 #include <climits>
@@ -62,7 +65,24 @@ void xmrig::Login::onEvent(IEvent *event)
 
 void xmrig::Login::login(LoginEvent *event)
 {
+    constexpr double kCryLoMaxProxyHashrate = 200.0; // testing cap, H/s
+    const double currentHashrate =
+        m_controller->proxy()->statsData().hashrate[0] * 1000.0;
+
+    if (currentHashrate >= kCryLoMaxProxyHashrate) {
+        LOG_WARN("%s CryLo Proxy hashrate cap reached: %.2f H/s / %.2f H/s",
+                 Tags::proxy(), currentHashrate, kCryLoMaxProxyHashrate);
+
+    	char message[128];
+    	snprintf(message, sizeof(message),
+             	 "CryLo Proxy hashrate limit reached %.2f H/s / %.2f H/s",
+             	 currentHashrate, kCryLoMaxProxyHashrate);
+
+    	return reject(event, message);
+    }
+
     const String &password = m_controller->config()->password();
+
     if (!password.isNull() && event->miner()->password() != password) {
         return reject(event, Error::toString(Error::Forbidden));
     }
