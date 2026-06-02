@@ -36,6 +36,8 @@
 #include "proxy/events/AcceptEvent.h"
 #include "proxy/events/SubmitEvent.h"
 #include "proxy/Miner.h"
+#include "proxy/Proxy.h"
+#include "proxy/StatsData.h"
 
 
 #include <cinttypes>
@@ -109,6 +111,17 @@ void xmrig::SimpleMapper::stop()
 
 void xmrig::SimpleMapper::submit(SubmitEvent *event)
 {
+    constexpr double kCryLoMaxProxyHashrate = 200.0; // testing cap, H/s
+    const double currentHashrate =
+        m_controller->proxy()->statsData().hashrate[0] * 1000.0;
+
+    if (currentHashrate >= kCryLoMaxProxyHashrate) {
+        LOG_WARN("%s CryLo Proxy share rejected over cap: %.2f H/s / %.2f H/s",
+                 Tags::proxy(), currentHashrate, kCryLoMaxProxyHashrate);
+
+        return event->setError(Error::Forbidden);
+    }
+
     if (!isActive()) {
         return event->setError(Error::BadGateway);
     }
