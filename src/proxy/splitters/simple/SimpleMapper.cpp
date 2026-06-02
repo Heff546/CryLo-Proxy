@@ -27,6 +27,7 @@
 #include "base/io/log/Tags.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Pools.h"
+#include "base/tools/Chrono.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "net/JobResult.h"
@@ -41,6 +42,8 @@
 
 
 #include <cinttypes>
+
+static uint64_t g_overCapSince = 0;
 
 
 xmrig::SimpleMapper::SimpleMapper(uint64_t id, xmrig::Controller *controller) :
@@ -112,14 +115,30 @@ void xmrig::SimpleMapper::stop()
 void xmrig::SimpleMapper::submit(SubmitEvent *event)
 {
     constexpr double kCryLoMaxProxyHashrate = 200.0; // testing cap, H/s
+    constexpr uint64_t kCryLoGracePeriodMs = 180000;  // 3 minutes
+
     const double currentHashrate =
         m_controller->proxy()->statsData().hashrate[0] * 1000.0;
 
-    if (currentHashrate >= kCryLoMaxProxyHashrate) {
-        LOG_WARN("%s CryLo Proxy share rejected over cap: %.2f H/s / %.2f H/s",
-                 Tags::proxy(), currentHashrate, kCryLoMaxProxyHashrate);
+    const uint64_t now = Chrono::steadyMSecs();
 
-        return event->setError(Error::Forbidden);
+    if (currentHashrate >= kCryLoMaxProxyHashrate) {
+        if (g_overCapSince == 0) {
+            g_overCapSince = now;
+
+            LOG_WARN("%s CryLo Proxy over cap: %.2f H/s / %.2f H/s (grace period started)",
+                     Tags::proxy(), currentHashrate, kCryLoMaxProxyHashrate);
+        }
+
+        if ((now - g_overCapSince) >= kCryLoGracePeriodMs) {
+            LOG_WARN("%s CryLo Proxy share rejected over cap: %.2f H/s / %.2f H/s",
+                     Tags::proxy(), currentHashrate, kCryLoMaxProxyHashrate);
+
+            return event->setError(Error::Forbidden);
+        }
+    }
+    else {
+        g_overCapSince = 0;
     }
 
     if (!isActive()) {
