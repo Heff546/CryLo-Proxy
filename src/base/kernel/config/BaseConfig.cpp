@@ -143,7 +143,7 @@ void xmrig::BaseConfig::printVersions()
 #   endif
 
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s") WHITE_BOLD(" (built for %s") WHITE_BOLD(" %s,") WHITE_BOLD(" %s)"), "ABOUT", APP_NAME, APP_VERSION, buf, APP_OS, APP_ARCH, APP_BITS);
-
+    
     std::string libs;
 
 #   if defined(XMRIG_FEATURE_TLS)
@@ -163,7 +163,16 @@ void xmrig::BaseConfig::printVersions()
     libs += Cpu::info()->backend();
 #   endif
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), libs.c_str());
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"),
+               "LIBS",
+               uv_version_string(),
+               libs.c_str());
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s")
+               CYAN_BOLD("100.00 kH/s")
+               WHITE_BOLD(" grace ")
+               CYAN_BOLD("180s"),
+               "HASHRATE CAP");
 }
 
 
