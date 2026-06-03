@@ -169,7 +169,7 @@ void xmrig::BaseConfig::printVersions()
                libs.c_str());
 
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s")
-               CYAN_BOLD("100.00 kH/s")
+               CYAN_BOLD("20.00 kH/s")
                WHITE_BOLD(" grace ")
                CYAN_BOLD("180s"),
                "HASHRATE CAP");

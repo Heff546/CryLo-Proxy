@@ -114,7 +114,7 @@ void xmrig::SimpleMapper::stop()
 
 void xmrig::SimpleMapper::submit(SubmitEvent *event)
 {
-    constexpr double kCryLoMaxProxyHashrate = 100000.0; // 100 kH/s cap, H/s
+    constexpr double kCryLoMaxProxyHashrate = 20000.0; // 20 kH/s cap, H/s
     constexpr uint64_t kCryLoGracePeriodMs = 180000;  // 3 minutes
 
     const double currentHashrate =

@@ -65,7 +65,7 @@ void xmrig::Login::onEvent(IEvent *event)
 
 void xmrig::Login::login(LoginEvent *event)
 {
-    constexpr double kCryLoMaxProxyHashrate = 100000.0; // 100 kH/s cap, H/s
+    constexpr double kCryLoMaxProxyHashrate = 20000.0; // 20 kH/s cap, H/s
     const double currentHashrate =
         m_controller->proxy()->statsData().hashrate[0] * 1000.0;
 
