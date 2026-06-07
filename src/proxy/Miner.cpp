@@ -23,6 +23,8 @@
  */
 
 #include "proxy/Miner.h"
+#include <cstring>
+
 #include "3rdparty/rapidjson/document.h"
 #include "3rdparty/rapidjson/error/en.h"
 #include "3rdparty/rapidjson/stringbuffer.h"
@@ -226,12 +228,19 @@ bool xmrig::Miner::parseRequest(int64_t id, const char *method, const rapidjson:
             }
 
             m_user     = Json::getString(params, "login");
-            m_password = Json::getString(params, "pass");
-            m_agent    = Json::getString(params, "agent");
-            m_rigId    = Json::getString(params, "rigid");
+	    m_password = Json::getString(params, "pass");
+	    m_agent    = Json::getString(params, "agent");
 
-            LoginEvent::create(this, id, algorithms, params)->start();
-            return true;
+	    // CryLo-only proxy check
+	    if (m_agent.isNull() || strncmp(m_agent.data(), "CryLo-Proxy", 11) != 0) {
+    	        close();
+    		return true;
+	    }
+
+	    m_rigId    = Json::getString(params, "rigid");
+
+	    LoginEvent::create(this, id, algorithms, params)->start();
+	    return true;
         }
 
         return false;
